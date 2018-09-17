@@ -4,4 +4,6 @@ Data and R scripts relating to the methods described in Caravaggi A, Gatta M, Va
 
 ### Contents
 
-TBC
+**[data_analyses.R](https://github.com/arcaravaggi/GI_mice_seabirds/blob/master/analyses.R)** - All annotated code.    
+
+**[all_data.csv](https://github.com/arcaravaggi/GI_mice_seabirds/blob/master/giDAT.csv)** - Camera trap data used in the current study.    
