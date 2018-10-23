@@ -64,58 +64,39 @@ rm(list = ls()[!ls() %in% c("allDat", "act.sn", "act.yr",
 # Filter by each species
 # Remove rows from dfx which don't match in dfy (& vv) according to ID column
 # Bind to new dataframe
-f <- allDat %>%
-  filter(spp_1 == "Fox")
-r <- allDat %>%
-  filter(spp_1 == "Rabbit")
+f <- allDat %>% filter(spp_1 == "Fox")
+r <- allDat %>% filter(spp_1 == "Rabbit")
 f2 <- f  %>% semi_join(r, by = "site") 
 r2 <- r  %>% semi_join(f, by = "site")
 fr <- rbind(f2,r2)
 
 # Fox & hare
-f <- allDat %>%
-  filter(spp_1 == "Fox")
-h <- allDat %>%
-  filter(spp_1 == "Hare")
+f <- allDat %>% filter(spp_1 == "Fox")
+h <- allDat %>% filter(spp_1 == "Hare")
 f3 <- f  %>% semi_join(h, by = "site")
 h2 <- h  %>% semi_join(f, by = "site")
 fh <- rbind(f3, h2)
 
-# Fox & mouse
-f <- allDat %>%
-  filter(spp_1 == "Fox")
-mo <- allDat %>%
-  filter(spp_1 == "Mouse")
+# Fox & wood mouse
+f <- allDat %>% filter(spp_1 == "Fox")
+mo <- allDat %>% filter(spp_1 == "Mouse")
 f4 <- f  %>% semi_join(mo, by = "site")
 mo2 <- mo  %>% semi_join(f, by = "site")
 fmo <- rbind(f4, mo2)
 
-# Marten & Squirrel
-m <- allDat %>%
-  filter(spp_1 == "Marten")
-s <- allDat %>%
-  filter(spp_1 == "Squirrel")
+# Marten & squirrel
+m <- allDat %>% filter(spp_1 == "Marten")
+s <- allDat %>% filter(spp_1 == "Squirrel")
 s2 <- s  %>% semi_join(m, by = "site")
 m2 <- m  %>% semi_join(s, by = "site")
 ms <- rbind(m2,s2)
 
-# Marten & Squirrel
-m <- allDat %>%
-  filter(spp_1 == "Marten")
-mo <- allDat %>%
-  filter(spp_1 == "Mouse")
+# Marten & wood mouse
+m <- allDat %>% filter(spp_1 == "Marten")
+mo <- allDat %>% filter(spp_1 == "Mouse")
 mo3 <- mo  %>% semi_join(m, by = "site")
 m2 <- m  %>% semi_join(mo, by = "site")
 mmo <- rbind(m2,mo3)
-
-#Badger and rabbit
-b <- allDat %>%
-  filter(spp_1 == "Badger")
-r <- allDat %>%
-  filter(spp_1 == "Rabbit")
-b2 <- b  %>% semi_join(r, by = "site") 
-r4 <- r  %>% semi_join(b, by = "site")
-br <- rbind(b2,r4)
 
 #Fox-rabbit datasets
 spDATfr <- fr[fr$season=="spring",]
@@ -177,17 +158,6 @@ suDAT2mmo <- dcast(suDATmmo, hour ~ spp_1)
 auDAT2mmo <- dcast(auDATmmo, hour ~ spp_1) 
 wiDAT2mmo <- dcast(wiDATmmo, hour ~ spp_1)
 
-#Badger-rabbit datasets
-spDATbr <- br[br$season=="spring",]
-suDATbr <- br[br$season=="summer",]
-auDATbr <- br[br$season=="autumn",]
-wiDATbr <- br[br$season=="winter",]
-
-DAT2br <- dcast(br, hour ~ spp_1)   #General dataset for that species pair (all seasons)
-spDAT2br <- dcast(spDATbr, hour ~ spp_1) 
-suDAT2br <- dcast(suDATbr, hour ~ spp_1) 
-auDAT2br <- dcast(auDATbr, hour ~ spp_1) 
-wiDAT2br <- dcast(wiDATbr, hour ~ spp_1) 
 
 #function to export max lags
 ccfmax <- function(a, b, e=0)
@@ -232,22 +202,11 @@ ccfmax(DAT2mmo$Marten, DAT2mmo$Mouse, 0.5)
 0.6211498*sqrt((24-2)/(1-(0.6211498^2))) #t-test for marten-squirrel lag(-1:4, 1 lag)
 0.5359151*sqrt((24-2)/(1-(0.5359151^2))) #t-test for marten-mouse lag(-1:1, 0 lag)
 
-lagDAT <- as.data.frame(c(ccf.fh, ccf.fr, ccf.fmo, ccf.br, ccf.ms, ccf.mmo))
+lagDAT <- as.data.frame(c(ccf.fh, ccf.fr, ccf.fmo, ccf.ms, ccf.mmo))
+lagDAT <- lagDAT[-c(2,3,5,6,8:12, 14:18, 20:24, 26:30)]
 
-colnames(lagDAT)[1] <- "fh.acf"
-colnames(lagDAT)[2] <- "fh.lag"
-colnames(lagDAT)[3] <- "fr.acf"
-colnames(lagDAT)[4] <- "fr.lag"
-colnames(lagDAT)[5] <- "fmo.acf"
-colnames(lagDAT)[6] <- "fmo.lag"
-colnames(lagDAT)[7] <- "br.acf"
-colnames(lagDAT)[8] <- "br.lag"
-colnames(lagDAT)[9] <- "ms.acf"
-colnames(lagDAT)[10] <- "ms.lag"
-colnames(lagDAT)[11] <- "mmo.acf"
-colnames(lagDAT)[12] <- "mmo.lag"
-
-write.csv(lagDAT, file = "lagDAT.csv")
+colnames(lagDAT) <- c("fh.acf", "lag", "fr.acf", "fmo.acf", "ms.acf", "mmo.acf")
+#write.csv(lagDAT, file = "lagDAT.csv")
 
 #Cross-correlation calculations (seasonal)
 fh.ccf2.sp <- ccf(spDAT2fh$Fox, spDAT2fh$Hare, 50)
@@ -264,11 +223,6 @@ fmo.ccf2.sp <- ccf(spDAT2fmo$Fox, spDAT2fmo$Mouse, 50)
 fmo.ccf2.su <- ccf(suDAT2fmo$Fox, suDAT2fmo$Mouse, 50)
 fmo.ccf2.au <- ccf(auDAT2fmo$Fox, auDAT2fmo$Mouse, 50)
 fmo.ccf2.wi <- ccf(wiDAT2fmo$Fox, wiDAT2fmo$Mouse, 50)
-
-br.ccf2.sp <- ccf(spDAT2br$Badger, spDAT2br$Rabbit, 50)
-br.ccf2.su <- ccf(suDAT2br$Badger, suDAT2br$Rabbit, 50)
-br.ccf2.au <- ccf(auDAT2br$Badger, auDAT2br$Rabbit, 50)
-br.ccf2.wi <- ccf(wiDAT2br$Badger, wiDAT2br$Rabbit, 50)
 
 ms.ccf2.sp <- ccf(spDAT2ms$Marten, spDAT2ms$Squirrel, 50)
 ms.ccf2.su <- ccf(suDAT2ms$Marten, suDAT2ms$Squirrel, 50)
@@ -308,11 +262,6 @@ ccfmax(wiDAT2fmo$Fox, wiDAT2fmo$Mouse, 0.5)
 0.4065901*sqrt((24-2)/(1-(0.4065901^2))) #t-test for fox-Mouse summer lag (-10:-9, -10 max)
 0.7611536*sqrt((24-2)/(1-(0.7611536^2))) #t-test for fox-Mouse summer lag (-1:1, 0 is the max)
 0.5435222*sqrt((24-2)/(1-(0.5435222^2))) #t-test for fox-Mouse autumn lag (0:2, 2 is the max)
-
-ccfmax(spDAT2br$Badger, spDAT2br$Rabbit, 0.5)
-ccfmax(suDAT2br$Badger, suDAT2br$Rabbit, 0.5)
-ccfmax(auDAT2br$Badger, auDAT2br$Rabbit, 0.5)
-ccfmax(wiDAT2br$Badger, wiDAT2br$Rabbit, 0.5)
 
 ccfmax(spDAT2ms$Marten, spDAT2ms$Squirrel, 0.5)
 ccfmax(suDAT2ms$Marten, suDAT2ms$Squirrel, 0.5)
@@ -355,8 +304,7 @@ colnames(FHlag)[5] <- "au.acf"
 colnames(FHlag)[6] <- "au.lag"
 colnames(FHlag)[7] <- "wi.acf"
 colnames(FHlag)[8] <- "wi.lag"
-
-write.csv(FHlag, file = "FHlag.csv")
+#write.csv(FHlag, file = "FHlag.csv")
 
 #Fox-Rabbit seasonal data
 frDATccf <- c(fr.ccf2.sp, fr.ccf2.su, fr.ccf2.au, fr.ccf2.wi)
@@ -374,8 +322,7 @@ colnames(FRlag)[5] <- "au.acf"
 colnames(FRlag)[6] <- "au.lag"
 colnames(FRlag)[7] <- "wi.acf"
 colnames(FRlag)[8] <- "wi.lag"
-
-write.csv(FRlag, file = "FRlag.csv")
+#write.csv(FRlag, file = "FRlag.csv")
 
 #Fox-Mouse seasonal data
 fmoDATccf <- c(fmo.ccf2.sp, fmo.ccf2.su, fmo.ccf2.au, fmo.ccf2.wi)
@@ -393,27 +340,7 @@ colnames(FMOlag)[5] <- "au.acf"
 colnames(FMOlag)[6] <- "au.lag"
 colnames(FMOlag)[7] <- "wi.acf"
 colnames(FMOlag)[8] <- "wi.lag"
-
-write.csv(FMOlag, file = "FMOlag.csv")
-
-#Badger-Rabbit seasonal data
-brDATccf <- c(br.ccf2.sp, br.ccf2.su, br.ccf2.au, br.ccf2.wi)
-brDATccf <- t(plyr::ldply(brDATccf, rbind))
-colnames(brDATccf) = brDATccf[1, ] 
-brDATccf = brDATccf[-1, ]  
-
-BRlag <-brDATccf[ , c(1, 4, 7, 10, 13, 16, 19, 22)]
-
-colnames(BRlag)[1] <- "sp.acf"
-colnames(BRlag)[2] <- "sp.lag"
-colnames(BRlag)[3] <- "su.acf"
-colnames(BRlag)[4] <- "su.lag"
-colnames(BRlag)[5] <- "au.acf"
-colnames(BRlag)[6] <- "au.lag"
-colnames(BRlag)[7] <- "wi.acf"
-colnames(BRlag)[8] <- "wi.lag"
-
-write.csv(BRlag, file = "BRlag.csv")
+#write.csv(FMOlag, file = "FMOlag.csv")
 
 #Marten-Squirrel seasonal data
 msDATccf <- c(ms.ccf2.sp, ms.ccf2.su, ms.ccf2.au, ms.ccf2.wi)
@@ -431,8 +358,7 @@ colnames(MSlag)[5] <- "au.acf"
 colnames(MSlag)[6] <- "au.lag"
 colnames(MSlag)[7] <- "wi.acf"
 colnames(MSlag)[8] <- "wi.lag"
-
-write.csv(MSlag, file = "MSlag.csv")
+#write.csv(MSlag, file = "MSlag.csv")
 
 #Marten-Squirrel seasonal data
 mmoDATccf <- c(mmo.ccf2.sp, mmo.ccf2.su, mmo.ccf2.au, mmo.ccf2.wi)
@@ -450,17 +376,12 @@ colnames(MMOlag)[5] <- "au.acf"
 colnames(MMOlag)[6] <- "au.lag"
 colnames(MMOlag)[7] <- "wi.acf"
 colnames(MMOlag)[8] <- "wi.lag"
-
-write.csv(MMOlag, file = "MMOlag.csv")
-
+#write.csv(MMOlag, file = "MMOlag.csv")
 
 
-
-###### ANOVAs
-
-plot(sresid~ba1$fitted.values)
-
-BaDAT <- magDAT[magDAT$spp_1 == "Badger",]
+###### Models #######
+# Activity variation between seasons within-species
+BaDAT <- allDat[allDat$spp_1 == "Badger",]
 ba1 <- aov(m_60~season, BaDAT)
 summary(ba1)
 TukeyHSD(ba1)
@@ -486,37 +407,37 @@ CDba1 <- cooks.distance(ba1)
 sresid <- resid(ba1, type="pearson")
 plot(CDba1~sresid)
 
-FaDAT <- magDAT[magDAT$spp_1 == "Fallow",]
+FaDAT <- allDat[allDat$spp_1 == "Fallow",]
 fa1 <- aov(m_60~season, FaDAT)
 summary(fa1)
 TukeyHSD(fa1)
 
-FoDAT <- magDAT[magDAT$spp_1 == "Fox",]
+FoDAT <- allDat[allDat$spp_1 == "Fox",]
 fo1 <- aov(m_60~season, FoDAT)
 summary(fo1)
 TukeyHSD(fo1)
 
-HaDAT <- magDAT[magDAT$spp_1 == "Hare",]
+HaDAT <- allDat[allDat$spp_1 == "Hare",]
 ha1 <- aov(m_60~season, HaDAT)
 summary(ha1)
 TukeyHSD(ha1)
 
-MaDAT <- magDAT[magDAT$spp_1 == "Marten",]
+MaDAT <- allDat[allDat$spp_1 == "Marten",]
 ma1 <- aov(m_60~season, MaDAT)
 summary(ma1)
 TukeyHSD(ma1)
 
-MoDAT <- magDAT[magDAT$spp_1 == "Mouse",]
+MoDAT <- allDat[allDat$spp_1 == "Mouse",]
 mo1 <- aov(m_60~season, MoDAT)
 summary(mo1)
 TukeyHSD(mo1)
 
-RaDAT <- magDAT[magDAT$spp_1 == "Rabbit",]
+RaDAT <- allDat[allDat$spp_1 == "Rabbit",]
 ra1 <- aov(m_60~season, RaDAT)
 summary(ra1)
 TukeyHSD(ra1)
 
-SqDAT <- magDAT[magDAT$spp_1 == "Squirrel",]
+SqDAT <- allDat[allDat$spp_1 == "Squirrel",]
 sq1 <- aov(m_60~season, SqDAT)
 summary(sq1)
 TukeyHSD(sq1)
@@ -541,42 +462,10 @@ Tsq$season
 
 ###Overlap plots
 #
-# Create datasets that only contain matching species pairs
+# Using datasets that only contain matching species pairs
 #
-# Fox & Rabbit
-# Filter by each species
-# Remove rows from dfx which don't match in dfy (& vv) according to ID column
-# Bind to new dataframe
-
-f <- allDat %>%
-  filter(spp_1 == "Fox")
-r <- allDat %>%
-  filter(spp_1 == "Rabbit")
-f2 <- f  %>% semi_join(r, by = "site") 
-r2 <- r  %>% semi_join(r, by = "site")
-fr <- rbind(f2,r2)
-
-V# Fox & hare
-f <- allDat %>%
-  filter(spp_1 == "Fox")
-h <- allDat %>%
-  filter(spp_1 == "Hare")
-f3 <- f  %>% semi_join(h, by = "site")
-h2 <- h  %>% semi_join(f, by = "site")
-fh <- rbind(f3, h2)
-
-# Marten & Squirrel
-m <- allDat %>%
-  filter(spp_1 == "Marten")
-s <- allDat %>%
-  filter(spp_1 == "Squirrel")
-s2 <- s  %>% semi_join(m, by = "site")
-m2 <- m  %>% semi_join(s, by = "site")
-ms <- rbind(m2,s2)
-
-
 # Convert time to decimal and rescale to between 0 and 1
-fr$time_adj <- sapply(strsplit(fr$time,":"),
+fr$time_adj <- sapply(strsplit(fr$time,":"), # Fox & rabbit
                       function(x) {
                         x <- as.numeric(x)
                         x[1]+x[2]/60
@@ -584,7 +473,7 @@ fr$time_adj <- sapply(strsplit(fr$time,":"),
 )
 fr$time_adj <- scales:::rescale(fr$time_adj, to = c(0, 1)) 
 
-fh$time_adj <- sapply(strsplit(fh$time,":"),
+fh$time_adj <- sapply(strsplit(fh$time,":"), # Fox & hare
                       function(x) {
                         x <- as.numeric(x)
                         x[1]+x[2]/60
@@ -592,7 +481,15 @@ fh$time_adj <- sapply(strsplit(fh$time,":"),
 )
 fh$time_adj <- scales:::rescale(fh$time_adj, to = c(0, 1))
 
-ms$time_adj <- sapply(strsplit(ms$time,":"),
+fmo$time_adj <- sapply(strsplit(fmo$time,":"), # Fox & mouse
+                      function(x) {
+                        x <- as.numeric(x)
+                        x[1]+x[2]/60
+                      }
+)
+fmo$time_adj <- scales:::rescale(fmo$time_adj, to = c(0, 1))
+
+ms$time_adj <- sapply(strsplit(ms$time,":"), # Marten & squirrel
                       function(x) {
                         x <- as.numeric(x)
                         x[1]+x[2]/60
@@ -600,38 +497,87 @@ ms$time_adj <- sapply(strsplit(ms$time,":"),
 )
 ms$time_adj <- scales:::rescale(ms$time_adj, to = c(0, 1)) 
 
+mmo$time_adj <- sapply(strsplit(mmo$time,":"), # Marten & mouse
+                      function(x) {
+                        x <- as.numeric(x)
+                        x[1]+x[2]/60
+                      }
+)
+mmo$time_adj <- scales:::rescale(mmo$time_adj, to = c(0, 1)) 
+
 # Convert to radians
 timeRad.fr <- fr$time_adj  * 2 * pi
 fox.p.fr <- timeRad.fr[fr$spp_1 == 'Fox']
-rabbit.p.fr <- timeRad.fr[fr$spp_1 == 'Rabbit']
+rab.p.fr <- timeRad.fr[fr$spp_1 == 'Rabbit']
 
 timeRad.fh <- fh$time_adj  * 2 * pi
 fox.p.fh <- timeRad.fh[fh$spp_1 == 'Fox']
 har.p.fh <- timeRad.fh[fh$spp_1 == 'Hare']
 
+timeRad.fmo <- fmo$time_adj  * 2 * pi
+fox.p.fmo <- timeRad.fmo[fmo$spp_1 == 'Fox']
+mou.p.fmo <- timeRad.fmo[fmo$spp_1 == 'Mouse']
+
 timeRad.ms <- ms$time_adj  * 2 * pi
 mar.p.ms <- timeRad.ms[ms$spp_1 == 'Marten']
 squ.p.ms <- timeRad.ms[ms$spp_1 == 'Squirrel']
 
+timeRad.mmo <- mmo$time_adj  * 2 * pi
+mar.p.mmo <- timeRad.mmo[mmo$spp_1 == 'Marten']
+mou.p.mmo <- timeRad.mmo[mmo$spp_1 == 'Mouse']
+
 # Overlap species pairs and estimate overlap
-
-rab.p.fr <- timeRad.fr[fr$spp_1 == 'Rabbit']
-fox.p.fr <- timeRad.fr[fr$spp_1 == 'Fox']
-foxrab2est.fr <- overlapEst(fox.p.fr, rab.p.fr, type="Dhat4") # overlap estimate
-overlapPlot(fox.p.fr, rab.p.fr, main=NULL)
+foxrab2est.fr <- overlapEst(fox.p.fr, rab.p.fr, type="Dhat4")
+pdf(NULL) # Save plot to an object using a null PDF device
+dev.control(displaylist="enable")
+par(family = 'serif')
+overlapPlot(fox.p.fr, rab.p.fr, main=NULL, font.lab=2 )
 legend('top', c("Fox", "Rabbit"), lty=c(1,2), col=c(1,4), bty='n')
+p1 <- recordPlot()
+invisible(dev.off())
 
-fox.p.fh <- timeRad.fh[fh$spp_1 == 'Fox']
-har.p.fh <- timeRad.fh[fh$spp_1 == 'Hare']
-foxhar2est.fh <- overlapEst(fox.p.fh, har.p.fh, type="Dhat4") # overlap estimate
-overlapPlot(fox.p.fh, har.p.fh, main=NULL)
+foxhar2est.fh <- overlapEst(fox.p.fh, har.p.fh, type="Dhat4") 
+pdf(NULL) 
+dev.control(displaylist="enable")
+par(family = 'serif')
+overlapPlot(fox.p.fh, har.p.fh, main=NULL,font.lab=2 )
 legend('top', c("Fox", "Hare"), lty=c(1,2), col=c(1,4), bty='n')
+p2 <- recordPlot()
+invisible(dev.off())
 
-mar.p.ms <- timeRad.ms[ms$spp_1 == 'Marten']
-squ.p.ms <- timeRad.ms[ms$spp_1 == 'Squirrel']
-marsqu2est.ms <- overlapEst(mar.p.ms, squ.p.ms, type="Dhat4") # overlap estimate
-overlapPlot(mar.p.ms, squ.p.ms,  main=NULL)
+foxmou2est.fmo <- overlapEst(fox.p.fmo, mou.p.fmo, type="Dhat4")
+pdf(NULL) 
+dev.control(displaylist="enable")
+par(family = 'serif')
+overlapPlot(fox.p.fmo, mou.p.fmo, main=NULL, font.lab=2 )
+legend('top', c("Fox", "Mouse"), lty=c(1,2), col=c(1,4), bty='n')
+p3 <- recordPlot()
+invisible(dev.off())
+
+marsqu2est.ms <- overlapEst(mar.p.ms, squ.p.ms, type="Dhat4") 
+pdf(NULL) 
+dev.control(displaylist="enable")
+par(family = 'serif')
+overlapPlot(mar.p.ms, squ.p.ms,  main=NULL,font.lab=2 )
 legend('top', c("Marten", "Squirrel"), lty=c(1,2), col=c(1,4), bty='n')
+p4 <- recordPlot()
+invisible(dev.off())
+
+marsqu2est.mmo <- overlapEst(mar.p.mmo, mou.p.mmo, type="Dhat4") 
+pdf(NULL) 
+dev.control(displaylist="enable")
+par(family = 'serif')
+overlapPlot(mar.p.mmo, mou.p.mmo,  main=NULL, font.lab=2 )
+legend('top', c("Marten", "Mouse"), lty=c(1,2), col=c(1,4), bty='n')
+p5 <- recordPlot()
+invisible(dev.off())
+
+png('Mag_plot.png', units="in", type = 'cairo', width=9.5, height=12, res=300)
+ggarrange(p1, p2, p3, p4, p5,
+          labels = c("a)", "b)", "c)", "d)", "e)"),
+          vjust = 1,
+          ncol = 2, nrow = 3)
+dev.off() 
 
 #Seasonal overlaps
 #First check that we have enough data for each season
@@ -667,7 +613,7 @@ rab.sp.fr <- timeRad.fr[fr$spp_1 == 'Rabbit' & fr$season == 'spring']
 fox.sp.fr <- timeRad.fr[fr$spp_1 == 'Fox' &  fr$season == 'spring']
 foxrab.sp2est.fr <- overlapEst(fox.sp.fr, rab.sp.fr, type="Dhat4") # overlap estimate
 overlapPlot(fox.sp.fr, rab.sp.fr, main=NULL)
-legend('top', c("Fox", "Rabbit"), lty=c(1,2), col=c(1,4), bty='n')
+legend('top', c("Fox (n = 106)", "Rabbit (n = 492)"), lty=c(1,2), col=c(1,4), bty='n')
 
 rab.su.fr <- timeRad.fr[fr$spp_1 == 'Rabbit' &  fr$season == 'summer']
 fox.su.fr <- timeRad.fr[fr$spp_1 == 'Fox' &  fr$season == 'summer']
@@ -954,4 +900,204 @@ OverlapTable[,c("Overlap_estimates", "Upper_Overlap_CI", "Lower_Overlap_CI")] <-
 colnames(OverlapTable) <- c("Predator-Prey pairs", "Season", "Overlap estimate", 
                             "Upper bootstrap CI", "Lower bootstrap CI")
 
-write.csv(OverlapTable, file = "OverlapTable.csv")
+#write.csv(OverlapTable, file = "OverlapTable.csv")
+
+
+### Plots
+theme_ac1 <- function(base_family = "serif", base_size_a = 12, base_size_t = 12){
+  theme_bw(base_family = base_family) %+replace%
+    theme(
+      plot.background = element_blank(),
+      panel.grid = element_blank(),   
+      legend.key=element_rect(colour=NA, fill =NA),
+      panel.border = element_rect(fill = NA, colour = "black", size=1),
+      panel.background = element_rect(fill = "white", colour = "black"), 
+      strip.background = element_rect(fill = NA)
+    )
+}
+
+##### Activity of species groups
+#
+# Group 1 = Fox, badger, marten
+# Group 2 = hare, rabbit, squirrel
+# Group 3 = fallow, woodmouse
+a1 <- ggplot(act.yr) +
+  geom_rect(xmin = -5, xmax = 5, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  geom_rect(xmin = 20, xmax = 25, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Fox")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Fox"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Hare")), aes(y = rescale(freq, to = c(0.1, 0.9)), x = hour, linetype = "Hare"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Rabbit")), aes(y = rescale(freq, to = c(0., .9)), x = hour, linetype = "Rabbit"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  theme_ac1() + 
+  theme(
+    axis.text.x = element_text(colour = "white"),
+    axis.title.x = element_text(colour = "white"),
+    axis.ticks.x = element_line(colour = "white"),
+    axis.text.y = element_text(size = 12, colour = "black"),
+    axis.title.y = element_text(size = 12, face = "bold", colour = "black")) +  
+  scale_linetype_manual(values=c("solid", "dotted", "dotdash"), name = "Species")  +
+  xlab("Hour") + ylab("Frequency of detection") +
+  scale_x_continuous(limits = c(0,23.5),
+                     breaks = c(0,6,12,18,24)) +
+  ylim(0,1)
+
+
+a2 <- ggplot(act.yr) +
+  geom_rect(xmin = -5, xmax = 5, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  geom_rect(xmin = 20, xmax = 25, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Marten")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Marten"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Squirrel")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Squirrel"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Mouse")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Mouse"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  theme_ac1() + 
+  theme(
+    axis.text.x = element_text(colour = "white"),
+    axis.title.x = element_text(colour = "white"),
+    axis.ticks.x = element_line(colour = "white"),
+    axis.text.y = element_text(size = 12, colour = "black"),
+    axis.title.y = element_text(size = 12, face="bold", colour = "black")) + 
+  scale_linetype_manual(values=c("solid", "dotted", "dotdash"), name = "Species")  +
+  xlab("Hour") + ylab("Frequency of detection") +
+  scale_x_continuous(limits = c(0,23.5),
+                     breaks = c(0,6,12,18,24)) +
+  ylim(0,1)
+
+a3 <- ggplot(act.yr) +
+  geom_rect(xmin = -5, xmax = 5, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  geom_rect(xmin = 20, xmax = 25, ymin = -1, ymax = 1.1, fill="lightgrey", linetype = 0, color = "lightgrey") +
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Badger")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Badger"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  stat_smooth(data=subset(act.yr, spp_1 %in% c("Fallow")), aes(y = rescale(freq, to = c(0.1, .9)), x = hour, linetype = "Fallow"), 
+              colour = "black", method = lm, formula = y ~ poly(x, 10), se = FALSE) + 
+  theme_ac1() + 
+  theme(
+    axis.text = element_text(size = 12, colour = "black"),
+    axis.title.y = element_text(size = 12, face="bold", colour = "black"),
+    axis.title.x = element_text(size = 12, face="bold", colour = "black")) + 
+  scale_linetype_manual(values=c("solid", "dotted"), name = "Species")  +
+  xlab("Hour") + ylab("Frequency of detection") +
+  scale_x_continuous(limits = c(0,23.5),
+                     breaks = c(0,6,12,18,24)) +
+  ylim(0,1)
+
+
+#Export multiplot
+#png('Plots/Activity_plot.png', units="in", type="cairo", width=6, height=10, res=300)
+#ggarrange(a1, a2, a3,
+#          labels = c("a)", "b)", "c)"),
+#          ncol = 1, nrow = 3)
+#dev.off() 
+
+# Import animal silhouette graphics
+# Images copyright Anthony Caravaggi. Do not use without permission
+badger <- readJPEG("images/badger.jpg")
+badger <- rasterGrob(badger, interpolate=TRUE)
+deer <- readJPEG("images/fallow deer.jpg")
+deer <- rasterGrob(deer, interpolate=TRUE)
+fox <- readJPEG("images/fox.jpg")
+fox <- rasterGrob(fox, interpolate=TRUE)
+hare <- readJPEG("images/hare.jpg")
+hare <- rasterGrob(hare, interpolate=TRUE)
+marten <- readJPEG("images/pine marten.jpg")
+marten <- rasterGrob(marten, interpolate=TRUE)
+mouse <- readJPEG("images/wood mouse.jpg")
+mouse <- rasterGrob(mouse, interpolate=TRUE)
+rabbit <- readJPEG("images/rabbit.jpg")
+rabbit <- rasterGrob(rabbit, interpolate=TRUE)
+squirrel <- readJPEG("images/squirrel.jpg")
+squirrel <- rasterGrob(squirrel, interpolate=TRUE)
+
+# Function for reproducible magnitude plots
+#
+# spp = species(e.g. "Fox")
+# img = species silhouette
+magplot <- function(spp, img){
+  ggplot(data = subset(allDat, spp_1 %in% c(spp)), aes(x = season, y = m_60)) +
+    geom_rect(xmin = 0, xmax = 5, ymin = -11, ymax = 0, position = position_nudge(x = -1, y = 0),
+              fill="#CCCCCC", linetype = 1, color = "#000000") + #Changed ymin=10
+    #geom_violin(scale = "count", trim = TRUE) +
+    #stat_summary(fun.data=data_summary, geom="crossbar", width=0.1 ) + 
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
+    geom_point(aes(y = m_60), size = .05, alpha = 0.8, position = position_jitter(width = .15)) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    theme_ac1() + 
+    theme(panel.border = element_rect(colour = "black", fill=NA, size=0.5)) +
+    xlab("Season") +
+    ylab(expression(atop("Detection time", paste("relative to sunrise/set"))))+
+    scale_x_discrete(labels=c("Spring", "Summer", "Autumn", "Winter")) +
+    geom_hline(yintercept = mean(subset(allDat$m_60, allDat$spp_1 %in% c(spp))), linetype="dashed") +
+    annotation_custom(img, xmin=3.5, xmax=4.5, ymin=6, ymax=10)+
+    scale_y_continuous(limits=c(-10, 10)) #Added limits
+}
+
+b.s <- magplot("Badger", badger)
+b.s <- b.s + theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(size = 14),
+  axis.title.y = element_text(size = 14))
+d.s <- magplot("Fallow", deer)
+d.s <- d.s + theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(colour = "white"),
+  axis.title.y = element_text(colour = "white"),
+  axis.ticks.y = element_line(colour = "white"))
+f.s <- magplot("Fox", fox)
+f.s <- f.s + theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(size = 14),
+  axis.title.y = element_text(size = 14))
+h.s <- magplot("Hare", hare)
+h.s <- h.s + theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(colour = "white"),
+  axis.title.y = element_text(colour = "white"),
+  axis.ticks.y = element_line(colour = "white"))
+ma.s <- magplot("Marten", marten)
+ma.s <- ma.s + theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(size = 14),
+  axis.title.y = element_text(size = 14))
+r.s <- magplot("Rabbit", rabbit)
+r.s <- r.s +  theme(
+  axis.text.x = element_text(colour = "white"),
+  axis.title.x = element_text(colour = "white"),
+  axis.ticks.x = element_line(colour = "white"),
+  axis.text.y = element_text(colour = "white"),
+  axis.title.y = element_text(colour = "white"),
+  axis.ticks.y = element_line(colour = "white"))
+s.s <- magplot("Squirrel", squirrel)
+s.s <- s.s + theme(
+  axis.title.x = element_text(size = 14),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title.y = element_text(size = 14))
+mo.s <- magplot("Mouse", mouse)
+mo.s <- mo.s + theme(
+  axis.text.x = element_text(size = 14),
+  axis.title.x = element_text(size = 14),
+  axis.text.y = element_text(colour = "white"),
+  axis.title.y = element_text(colour = "white"),
+  axis.ticks.y = element_line(colour = "white"))
+
+# Export multiplot
+png('Mag_plot.png', units="in", type = 'cairo', width=9.5, height=12, res=300)
+ggarrange(b.s, d.s, f.s, h.s, ma.s, r.s, s.s, mo.s,
+          labels = c("a)", "b)", "c)", "d)", "e)", "f)", "g)", "h)"),
+          vjust = 1,
+          ncol = 2, nrow = 4)
+dev.off() 
+
